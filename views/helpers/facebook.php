@@ -445,28 +445,4 @@ class FacebookHelper extends AppHelper {
 		return $retval;
 	}
 	
-	/**
-	 * Generate an open graph meta tag
-	 *
-	 * @param string $type type (og:type, og:title...)
-	 * @param string $url  value of the property
-	 * @param string $options  (use "inline" => false to insert the tag in the head section)
-	 * @return void
-	 * @author Guillaume Sautereau
-	 * @see http://developers.facebook.com/docs/opengraph/
-	 */
-	function meta($type, $url = null, $options = array()) {
-	    $inline = isset($options['inline']) ? $options['inline'] : true;
-        unset($options['inline']);
-        $params = array('property' => $type, 'content' => $url);
-        $options = array_merge($params, $options);
-        $out = null;
-        $out = sprintf('<meta %s/>', $this->_parseAttributes($options, array('type', 0)), '', '');
-        if (!$inline) {
-            echo $out;
-        } else {
-            $view =& ClassRegistry::getObject('view');
-            $view->addScript($out);
-        }
-	}
 }
