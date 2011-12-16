@@ -32,21 +32,17 @@ class FacebookInfo {
     * @access public
     */
   static function getConfig($key = null){
-    if(isset(self::$configs[$key])){
-      return self::$configs[$key];
-    }
-    //try configure setting
-    if(self::$configs[$key] = Configure::read("Facebook.$key")){
-      return self::$configs[$key];
-    }
-    //try load configuration file and try again.
-    Configure::load('facebook');
-    self::$configs = Configure::read('Facebook');
-    if(self::$configs[$key] = Configure::read("Facebook.$key")){
-      return self::$configs[$key];
-    }
-    
-    return null;
+    if (!empty($key)) {
+			if (isset(self::$configs[$key]) || (self::$configs[$key] = Configure::read("Facebook.$key"))) {
+				return self::$configs[$key];
+			} elseif (Configure::load('facebook') && (self::$configs[$key] = Configure::read("Facebook.$key"))) {
+				return self::$configs[$key];
+			}
+		} else {
+			Configure::load('facebook');
+			return Configure::read('Facebook');
+		}
+		return null;
   }
   
   /**
@@ -54,7 +50,7 @@ class FacebookInfo {
     * @return string version number
     */
   static function version(){
-    return '2.4.3';
+    return '3.1.1';
   }
   
   /**
@@ -126,6 +122,43 @@ class FacebookInfo {
     */
   static function _isAvailable($name){
     return in_array($name, self::$options);
+  }
+  
+  /**
+  * Parse the signed request from registration
+  * @param string signed request
+  * @return associative array of registration data
+  */
+  static function parseSignedRequest($signed_request) {
+  	$secret = self::getConfig('secret');
+  	list($encoded_sig, $payload) = explode('.', $signed_request, 2); 
+  	
+  	// decode the data
+  	$sig = self::base64_url_decode($encoded_sig);
+  	$data = json_decode(self::base64_url_decode($payload), true);
+  	
+  	if (strtoupper($data['algorithm']) !== 'HMAC-SHA256') {
+  		error_log('Unknown algorithm. Expected HMAC-SHA256');
+  		return null;
+  	}
+  	
+  	// check sig
+  	$expected_sig = hash_hmac('sha256', $payload, $secret, $raw = true);
+  	if ($sig !== $expected_sig) {
+  		error_log('Bad Signed JSON signature!');
+  		return null;
+  	}
+  	
+  	return $data;
+  }
+  
+  /**
+  * Helper function to base64 decode a string passed through a url.
+  * @param string input
+  * @return string base64_decoded
+  */
+  static function base64_url_decode($input) {
+  	return base64_decode(strtr($input, '-_', '+/'));
   }
 }
 ?>
