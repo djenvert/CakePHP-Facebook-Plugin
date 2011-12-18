@@ -455,7 +455,7 @@ class FacebookHelper extends AppHelper {
 		if ($appId = FacebookInfo::getConfig('appId')) {
 			$session = json_encode($this->Session->read('FB.Session'));
 			if ($reload) {
-				$callback = "FB.Event.subscribe('auth.login',function(){window.location.reload()});";
+				$callback = "FB.Event.subscribe('auth.login',function(){setTimeout('window.location.reload()',100)});";
 			} else {
 				$callback = "if(typeof(facebookReady)=='function'){facebookReady()}";
 			}
